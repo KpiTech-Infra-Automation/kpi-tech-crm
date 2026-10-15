@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KPI Tech Corporation - Enterprise CRM & Billing Portal</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#0B0F19',
+              card: '#111827',
+              border: '#1F2937',
+              blue: '#3B82F6',
+              purple: '#8B5CF6',
+              accent: '#06B6D4'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Dark Dot Grid Motif Pattern */
+    body {
+      background-color: #080C14;
+      background-image: radial-gradient(#1E293B 1px, transparent 1px);
+      background-size: 24px 24px;
+      color: #E2E8F0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    /* Custom Gradient Text */
+    .tech-gradient-text {
+      background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0B0F19;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1F2937;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #374151;
+    }
+
+    /* Print styling for invoice export */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printable-invoice, #printable-invoice * {
+        visibility: visible;
+      }
+      #printable-invoice {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        color: #000 !important;
+        background: #fff !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-brand-blue selection:text-white">
+
+  <!-- ================= AUTHENTICATION / LOGIN SCREEN ================= -->
+  <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-[#080C14] p-4">
+    <div class="w-full max-w-md bg-[#111827] border border-gray-800 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+      <!-- Gradient Glow Behind Card -->
+      <div class="absolute -top-12 -right-12 w-40 h-40 bg-brand-blue/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-12 -left-12 w-40 h-40 bg-brand-purple/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Brand Logo Header -->
+      <div class="flex items-center space-x-3 mb-8">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-blue to-brand-purple p-0.5 flex items-center justify-center shadow-lg shadow-brand-blue/20">
+          <div class="w-full h-full bg-[#0B0F19] rounded-[14px] flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center space-x-1">
+            <span class="text-xl font-black tracking-wider text-white">KPI</span>
+            <span class="text-xl font-black tracking-wider tech-gradient-text">TECH</span>
+          </div>
+          <p class="text-[10px] font-semibold tracking-[0.25em] text-gray-400 uppercase">CORPORATION</p>
+        </div>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="login-form-container">
+        <h2 class="text-xl font-bold text-white mb-2">Welcome Back</h2>
+        <p class="text-sm text-gray-400 mb-6">Sign in to access KPI Tech enterprise portal</p>
+        
+        <form onsubmit="handleLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-gray-400 mb-1.5">Email Address</label>
+            <input type="email" id="login-email" value="s.jenkins@kpitech.com" required 
+                   class="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-blue transition">
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <label class="text-xs font-semibold uppercase text-gray-400">Password</label>
+              <button type="button" onclick="showForgotPassword()" class="text-xs text-brand-blue hover:underline">Forgot password?</button>
+            </div>
+            <input type="password" id="login-password" value="••••••••••••" required 
+                   class="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-blue transition">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-gray-400 mb-1.5">Role Perspective</label>
+            <select id="login-role" class="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-blue transition">
+              <option value="Finance Director">S. Jenkins (Finance Director)</option>
+              <option value="DevOps Lead">A. Sharma (DevOps & Cloud Lead)</option>
+              <option value="System Admin">M. Verma (System Administrator)</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full bg-gradient-to-r from-brand-blue to-brand-purple text-white font-semibold py-3 rounded-xl hover:opacity-95 transition shadow-lg shadow-brand-blue/20">
+            Sign In to Portal
+          </button>
+        </form>
+      </div>
+
+      <!-- FORGOT PASSWORD FORM -->
+      <div id="forgot-form-container" class="hidden">
+        <h2 class="text-xl font-bold text-white mb-2">Reset Password</h2>
+        <p class="text-sm text-gray-400 mb-6">Enter your email to receive a secure recovery link</p>
+
+        <form onsubmit="handleForgotPassword(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-gray-400 mb-1.5">Corporate Email</label>
+            <input type="email" id="reset-email" required placeholder="name@kpitech.com" 
+                   class="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-blue transition">
+          </div>
+          <button type="submit" class="w-full bg-brand-blue text-white font-semibold py-3 rounded-xl hover:bg-blue-600 transition shadow-lg">
+            Send Reset Instructions
+          </button>
+          <button type="button" onclick="showLoginForm()" class="w-full bg-gray-800/80 text-gray-300 font-semibold py-2.5 rounded-xl hover:bg-gray-800 transition">
+            Back to Sign In
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN PORTAL APP ================= -->
+  <div id="app-portal" class="min-h-screen flex flex-col hidden">
+    <div class="flex flex-1 overflow-hidden">
+      
+      <!-- SIDEBAR NAVIGATION -->
+      <aside class="w-64 bg-[#0B0F19] border-r border-gray-800 flex flex-col justify-between p-4 flex-shrink-0">
+        <div class="space-y-6">
+          <!-- Logo Header -->
+          <div class="flex items-center space-x-3 px-2 py-2">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-blue to-brand-purple p-0.5 flex items-center justify-center">
+              <div class="w-full h-full bg-[#0B0F19] rounded-[10px] flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center space-x-1">
+                <span class="text-base font-black tracking-wider text-white">KPI</span>
+                <span class="text-base font-black tracking-wider tech-gradient-text">TECH</span>
+              </div>
+              <p class="text-[9px] font-semibold tracking-[0.25em] text-gray-400 uppercase">CORPORATION</p>
+            </div>
+          </div>
+
+          <!-- Navigation Links -->
+          <nav class="space-y-1 text-sm font-medium">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl bg-brand-blue/10 text-brand-blue border border-brand-blue/20">
+              <i class="fa-solid fa-chart-pie w-5"></i>
+              <span>Dashboard</span>
+            </button>
+            <button onclick="switchTab('customers')" id="nav-customers" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
+              <i class="fa-solid fa-users w-5"></i>
+              <span>Customers & Accounts</span>
+            </button>
+            <button onclick="switchTab('billing')" id="nav-billing" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
+              <i class="fa-solid fa-file-invoice-dollar w-5"></i>
+              <span>Billing & Invoices</span>
+            </button>
+            <button onclick="switchTab('generate-invoice')" id="nav-generate-invoice" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
+              <i class="fa-solid fa-square-plus w-5"></i>
+              <span>Generate Invoice</span>
+            </button>
+            <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
+              <i class="fa-solid fa-chart-line w-5"></i>
+              <span>Analytics & Charts</span>
+            </button>
+            <button onclick="switchTab('projects')" id="nav-projects" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
+              <i class="fa-solid fa-diagram-project w-5"></i>
+              <span>Projects</span>
+            </button>
+            <button onclick="switchTab('orders')" id="nav-orders" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
+              <i class="fa-solid fa-cart-flatbed w-5"></i>
+              <span>Orders</span>
+            </button>
+            <button onclick="switchTab('gateway')" id="nav-gateway" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
+              <i class="fa-solid fa-credit-card w-5"></i>
+              <span>Gateway & Sync</span>
+            </button>
+            <button onclick="switchTab('users')" id="nav-users" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
+              <i class="fa-solid fa-user-gear w-5"></i>
+              <span>User Management</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- User Profile Card -->
+        <div class="bg-gray-900/80 border border-gray-800 rounded-2xl p-3">
+          <div class="flex items-center space-x-3 mb-3">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-blue to-purple-500 flex items-center justify-center font-bold text-white text-xs" id="user-avatar-initials">
+              SJ
+            </div>
+            <div class="truncate">
+              <h4 class="text-xs font-bold text-white truncate" id="user-display-name">S Jenkins</h4>
+              <p class="text-[10px] text-brand-blue font-medium truncate" id="user-display-role">Finance Director</p>
+            </div>
+          </div>
+          <button onclick="handleLogout()" class="w-full py-1.5 px-3 bg-gray-800 hover:bg-red-500/10 hover:text-red-400 text-gray-300 rounded-xl text-xs font-semibold transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT AREA -->
+      <main class="flex-1 flex flex-col overflow-y-auto">
+        
+        <!-- TOP NAVBAR HEADER -->
+        <header class="h-16 border-b border-gray-800 bg-[#0B0F19]/80 backdrop-blur px-6 flex items-center justify-between sticky top-0 z-30">
+          <div class="flex items-center space-x-4 flex-1 max-w-lg">
+            <div class="relative w-full">
+              <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+              <input type="text" placeholder="Search clients, GSTIN, invoice #..." 
+                     class="w-full bg-[#111827] border border-gray-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-brand-blue transition">
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <button onclick="switchTab('generate-invoice')" class="px-4 py-2 bg-brand-blue hover:bg-blue-600 text-white font-semibold rounded-xl text-xs transition flex items-center space-x-2 shadow-lg shadow-brand-blue/20">
+              <i class="fa-solid fa-plus"></i>
+              <span>New Invoice</span>
+            </button>
+            <button onclick="openModal('modal-add-client')" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold rounded-xl text-xs border border-gray-700 transition flex items-center space-x-2">
+              <i class="fa-solid fa-user-plus"></i>
+              <span>Add Client</span>
+            </button>
+            <div class="w-8 h-8 rounded-xl bg-gray-800 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
+              <i class="fa-solid fa-user-shield text-xs"></i>
+            </div>
+          </div>
+        </header>
+
+        <!-- VIEW CONTAINERS -->
+        <div class="p-6 space-y-6">
+          
+          <!-- TAB 1: DASHBOARD VIEW -->
+          <div id="tab-dashboard" class="tab-content space-y-6">
+            <!-- 4 METRIC CARDS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <!-- Total Revenue -->
+              <div class="bg-[#111827] border border-gray-800 rounded-2xl p-5 relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <p class="text-[10px] font-bold tracking-wider uppercase text-gray-400">Total Revenue</p>
+                    <h3 class="text-2xl font-black text-white mt-2">$1,482,900</h3>
+                    <p class="text-xs text-emerald-400 font-medium mt-1 flex items-center space-x-1">
+                      <i class="fa-solid fa-arrow-trend-up"></i>
+                      <span>+14.2% from last month</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Outstanding Invoices -->
+              <div class="bg-[#111827] border border-gray-800 rounded-2xl p-5 relative">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <p class="text-[10px] font-bold tracking-wider uppercase text-gray-400">Outstanding Invoices</p>
+                    <h3 class="text-2xl font-black text-white mt-2">$142,850</h3>
+                    <p class="text-xs text-amber-400 font-medium mt-1 flex items-center space-x-1">
+                      <i class="fa-solid fa-triangle-exclamation"></i>
+                      <span>1 Overdue payment</span>
+                    </p>
+                  </div>
+                  <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                    <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Active Accounts -->
+              <div class="bg-[#111827] border border-gray-800 rounded-2xl p-5 relative">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <p class="text-[10px] font-bold tracking-wider uppercase text-gray-400">Active Accounts</p>
+                    <h3 class="text-2xl font-black text-white mt-2">4</h3>
+                    <p class="text-xs text-emerald-400 font-medium mt-1 flex items-center space-x-1">
+                      <i class="fa-solid fa-check-circle"></i>
+                      <span>99.4% SLA Compliance</span>
+                    </p>
+                  </div>
+                  <div class="w-8 h-8 rounded-xl bg-brand-blue/10 text-brand-blue flex items-center justify-center">
+                    <i class="fa-solid fa-building text-xs"></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- MRR -->
+              <div class="bg-[#111827] border border-gray-800 rounded-2xl p-5 relative">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <p class="text-[10px] font-bold tracking-wider uppercase text-gray-400">Monthly Recurring (MRR)</p>
+                    <h3 class="text-2xl font-black text-white mt-2">$215,400</h3>
+                    <p class="text-xs text-emerald-400 font-medium mt-1 flex items-center space-x-1">
+                      <i class="fa-solid fa-arrow-up"></i>
+                      <span>+8.5% net new ARR</span>
+                    </p>
+                  </div>
+                  <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
+                    <i class="fa-solid fa-rotate text-xs"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CHARTS SECTION -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <!-- Trend Line Chart (2 Cols) -->
+              <div class="lg:col-span-2 bg-[#111827] border border-gray-800 rounded-2xl p-5 flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-4">
+                  <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-chart-line text-brand-accent"></i>
+                    <h3 class="text-sm font-bold text-white">Revenue Trend & Billing</h3>
+                  </div>
+                  <span class="text-[10px] bg-gray-800 text-gray-300 font-mono px-2.5 py-1 rounded-lg">FY 2026-27</span>
+                </div>
+                <div class="h-64 relative">
+                  <canvas id="revenueTrendChart"></canvas>
+                </div>
+              </div>
+
+              <!-- Payment Breakdown Donut Chart -->
+              <div class="bg-[#111827] border border-gray-800 rounded-2xl p-5 flex flex-col justify-between">
+                <div class="flex items-center space-x-2 mb-4">
+                  <i class="fa-solid fa-chart-pie text-brand-purple"></i>
+                  <h3 class="text-sm font-bold text-white">Payment Status Breakdown</h3>
+                </div>
+                <div class="h-48 relative flex items-center justify-center">
+                  <canvas id="paymentStatusChart"></canvas>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center pt-4 border-t border-gray-800 mt-2">
+                  <div>
+                    <p class="text-[10px] text-gray-400">Paid</p>
+                    <p class="text-sm font-bold text-emerald-400">76%</p>
+                  </div>
+                  <div>
+                    <p class="text-[10px] text-gray-400">Pending</p>
+                    <p class="text-sm font-bold text-amber-400">18%</p>
+                  </div>
+                  <div>
+                    <p class="text-[10px] text-gray-400">Overdue</p>
+                    <p class="text-sm font-bold text-rose-400">6%</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: CUSTOMERS & ACCOUNTS -->
+          <div id="tab-customers" class="tab-content hidden space-y-6">
+            <div class="flex justify-between items-center">
+              <div>
+                <h2 class="text-lg font-bold text-white">Enterprise Customers</h2>
+                <p class="text-xs text-gray-400">Client profiles, active contracts, and GSTIN master list</p>
+              </div>
+              <button onclick="openModal('modal-add-client')" class="px-4 py-2 bg-brand-blue hover:bg-blue-600 text-white rounded-xl text-xs font-semibold">
+                + Add New Account
+              </button>
+            </div>
+
+            <div class="bg-[#111827] border border-gray-800 rounded-2xl overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-[#0B0F19] text-gray-400 uppercase text-[10px] font-semibold border-b border-gray-800">
+                  <tr>
+                    <th class="p-4">Company Name</th>
+                    <th class="p-4">Tax ID / GSTIN</th>
+                    <th class="p-4">Primary Contact</th>
+                    <th class="p-4">Active Services</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800/60 text-gray-300" id="customer-table-body">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB 3: BILLING & INVOICES -->
+          <div id="tab-billing" class="tab-content hidden space-y-6">
+            <div class="flex justify-between items-center">
+              <div>
+                <h2 class="text-lg font-bold text-white">Invoices Master</h2>
+                <p class="text-xs text-gray-400">Audit ledgers, payment tracking, and line items</p>
+              </div>
+              <button onclick="switchTab('generate-invoice')" class="px-4 py-2 bg-brand-blue hover:bg-blue-600 text-white rounded-xl text-xs font-semibold">
+                + Create Invoice
+              </button>
+            </div>
+
+            <div class="bg-[#111827] border border-gray-800 rounded-2xl overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-[#0B0F19] text-gray-400 uppercase text-[10px] font-semibold border-b border-gray-800">
+                  <tr>
+                    <th class="p-4">Invoice #</th>
+                    <th class="p-4">Client</th>
+                    <th class="p-4">Issue Date</th>
+                    <th class="p-4">Due Date</th>
+                    <th class="p-4">Total Amount</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800/60 text-gray-300" id="invoices-table-body">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB 4: GENERATE INVOICE -->
+          <div id="tab-generate-invoice" class="tab-content hidden space-y-6">
+            <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6 space-y-6">
+              <div class="flex justify-between items-center border-b border-gray-800 pb-4">
+                <div>
+                  <h2 class="text-lg font-bold text-white">Invoice Studio Generator</h2>
+                  <p class="text-xs text-gray-400">Build itemized invoices with GST auto-calculation</p>
+                </div>
+                <span class="text-xs font-mono text-brand-blue bg-brand-blue/10 px-3 py-1 rounded-lg border border-brand-blue/20">INV-2026-089</span>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-400 mb-1">Select Customer</label>
+                  <select id="invoice-client-select" class="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <option value="Apex Cyber Systems">Apex Cyber Systems</option>
+                    <option value="Horizon Cloud Labs">Horizon Cloud Labs</option>
+                    <option value="Nexus Financial">Nexus Financial</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-400 mb-1">Invoice Currency</label>
+                  <select id="invoice-currency" class="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <option value="$">USD ($)</option>
+                    <option value="₹">INR (₹)</option>
+                    <option value="€">EUR (€)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-400 mb-1">Payment Terms</label>
+                  <select class="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <option>Net 30 Days</option>
+                    <option>Net 15 Days</option>
+                    <option>Due on Receipt</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- LINE ITEMS BUILDER -->
+              <div class="space-y-3">
+                <h3 class="text-xs font-bold text-gray-300 uppercase">Itemized Services</h3>
+                <div class="space-y-2" id="invoice-items-container">
+                  <div class="grid grid-cols-12 gap-2 item-row">
+                    <input type="text" placeholder="Service description" value="Azure DevOps Workflow Automation Setup" class="col-span-6 bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <input type="number" placeholder="Qty" value="1" oninput="calculateInvoiceTotal()" class="col-span-2 item-qty bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <input type="number" placeholder="Rate" value="45000" oninput="calculateInvoiceTotal()" class="col-span-3 item-rate bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+                    <button onclick="this.closest('.item-row').remove(); calculateInvoiceTotal();" class="col-span-1 text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </div>
+                <button onclick="addInvoiceRow()" class="text-xs text-brand-blue hover:underline font-semibold flex items-center space-x-1">
+                  <i class="fa-solid fa-plus text-[10px]"></i>
+                  <span>Add Line Item</span>
+                </button>
+              </div>
+
+              <!-- TOTALS CALCULATION -->
+              <div class="border-t border-gray-800 pt-4 flex justify-between items-end">
+                <div class="text-xs text-gray-400 space-y-1">
+                  <p>Bank: HDFC Corporate Bank</p>
+                  <p>A/C: 50200088921200 | IFSC: HDFC0001243</p>
+                </div>
+                <div class="w-64 space-y-1.5 text-xs text-right">
+                  <div class="flex justify-between text-gray-400">
+                    <span>Subtotal:</span>
+                    <span id="inv-subtotal">$45,000.00</span>
+                  </div>
+                  <div class="flex justify-between text-gray-400">
+                    <span>GST / Tax (18%):</span>
+                    <span id="inv-tax">$8,100.00</span>
+                  </div>
+                  <div class="flex justify-between text-base font-bold text-white border-t border-gray-800 pt-1.5">
+                    <span>Grand Total:</span>
+                    <span id="inv-grandtotal" class="text-brand-blue">$53,100.00</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex justify-end space-x-3 pt-2">
+                <button onclick="previewAndSaveInvoice()" class="px-5 py-2.5 bg-gradient-to-r from-brand-blue to-brand-purple text-white rounded-xl text-xs font-semibold hover:opacity-95 shadow-lg">
+                  Generate & Preview Invoice
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 5: ANALYTICS & CHARTS -->
+          <div id="tab-analytics" class="tab-content hidden space-y-6">
+            <h2 class="text-lg font-bold text-white">Financial Analytics</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="bg-[#111827] border border-gray-800 rounded-2xl p-5">
+                <h3 class="text-xs font-bold text-white mb-4">Recurring vs One-Time Revenue Split</h3>
+                <div class="h-64">
+                  <canvas id="analyticsBarChart"></canvas>
+                </div>
+              </div>
+              <div class="bg-[#111827] border border-gray-800 rounded-2xl p-5">
+                <h3 class="text-xs font-bold text-white mb-4">Client Portfolio Distribution</h3>
+                <div class="h-64">
+                  <canvas id="analyticsClientChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 6: PROJECTS -->
+          <div id="tab-projects" class="tab-content hidden space-y-6">
+            <div class="flex justify-between items-center">
+              <div>
+                <h2 class="text-lg font-bold text-white">Active Projects</h2>
+                <p class="text-xs text-gray-400">Cloud migration and DevOps engagement tracking</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="projects-list-container">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- TAB 7: ORDERS -->
+          <div id="tab-orders" class="tab-content hidden space-y-6">
+            <div class="flex justify-between items-center">
+              <div>
+                <h2 class="text-lg font-bold text-white">Hardware & Capacity Orders</h2>
+                <p class="text-xs text-gray-400">Server procurement & cloud license fulfillment</p>
+              </div>
+            </div>
+            <div class="bg-[#111827] border border-gray-800 rounded-2xl overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-[#0B0F19] text-gray-400 uppercase text-[10px] font-semibold border-b border-gray-800">
+                  <tr>
+                    <th class="p-4">Order ID</th>
+                    <th class="p-4">Client</th>
+                    <th class="p-4">Hardware/Service</th>
+                    <th class="p-4">Amount</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800/60 text-gray-300" id="orders-table-body">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB 8: GATEWAY & SYNC -->
+          <div id="tab-gateway" class="tab-content hidden space-y-6">
+            <h2 class="text-lg font-bold text-white">Payment Gateways</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-[#111827] border border-gray-800 rounded-2xl p-5 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                  <i class="fa-brands fa-stripe text-3xl text-indigo-400"></i>
+                  <div>
+                    <h3 class="text-sm font-bold text-white">Stripe Payments</h3>
+                    <p class="text-xs text-emerald-400">Connected - Webhooks Active</p>
+                  </div>
+                </div>
+                <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+              </div>
+              <div class="bg-[#111827] border border-gray-800 rounded-2xl p-5 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                  <i class="fa-solid fa-building-columns text-2xl text-blue-400"></i>
+                  <div>
+                    <h3 class="text-sm font-bold text-white">Razorpay / Bank Wire</h3>
+                    <p class="text-xs text-emerald-400">Connected - Auto Reconciliation</p>
+                  </div>
+                </div>
+                <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 9: USER MANAGEMENT -->
+          <div id="tab-users" class="tab-content hidden space-y-6">
+            <div class="flex justify-between items-center">
+              <div>
+                <h2 class="text-lg font-bold text-white">User Directory & Permissions</h2>
+                <p class="text-xs text-gray-400">System access, active accounts, and password resets</p>
+              </div>
+              <button onclick="openModal('modal-add-user')" class="px-4 py-2 bg-brand-blue hover:bg-blue-600 text-white rounded-xl text-xs font-semibold">
+                + Add Portal User
+              </button>
+            </div>
+
+            <div class="bg-[#111827] border border-gray-800 rounded-2xl overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-[#0B0F19] text-gray-400 uppercase text-[10px] font-semibold border-b border-gray-800">
+                  <tr>
+                    <th class="p-4">User</th>
+                    <th class="p-4">Role</th>
+                    <th class="p-4">Email</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800/60 text-gray-300" id="users-table-body">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- ADD CLIENT MODAL -->
+  <div id="modal-add-client" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-[#111827] border border-gray-800 rounded-2xl w-full max-w-md p-6 space-y-4">
+      <h3 class="text-base font-bold text-white">Add Enterprise Client</h3>
+      <div class="space-y-3">
+        <input type="text" id="new-client-name" placeholder="Company Name" class="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+        <input type="text" id="new-client-gstin" placeholder="GSTIN / Tax ID" class="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+        <input type="email" id="new-client-email" placeholder="Primary Email" class="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+      </div>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="closeModal('modal-add-client')" class="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl text-xs">Cancel</button>
+        <button onclick="saveNewClient()" class="px-4 py-2 bg-brand-blue text-white rounded-xl text-xs">Save Client</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD USER MODAL -->
+  <div id="modal-add-user" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-[#111827] border border-gray-800 rounded-2xl w-full max-w-md p-6 space-y-4">
+      <h3 class="text-base font-bold text-white">Add Portal User</h3>
+      <div class="space-y-3">
+        <input type="text" id="new-user-name" placeholder="Full Name" class="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+        <input type="email" id="new-user-email" placeholder="Corporate Email" class="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+        <select id="new-user-role" class="w-full bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+          <option>Finance Director</option>
+          <option>DevOps Lead</option>
+          <option>System Administrator</option>
+        </select>
+      </div>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="closeModal('modal-add-user')" class="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl text-xs">Cancel</button>
+        <button onclick="saveNewUser()" class="px-4 py-2 bg-brand-blue text-white rounded-xl text-xs">Add User</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVOICE PRINT MODAL -->
+  <div id="modal-invoice-preview" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white text-gray-900 rounded-2xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto" id="printable-invoice">
+      <div class="flex justify-between items-start border-b pb-6">
+        <div>
+          <h1 class="text-xl font-black text-gray-900">KPI TECH CORPORATION</h1>
+          <p class="text-xs text-gray-500">Cloud Infrastructure & Enterprise Solutions</p>
+        </div>
+        <div class="text-right">
+          <h2 class="text-lg font-bold text-blue-600" id="prev-inv-num">INV-2026-089</h2>
+          <p class="text-xs text-gray-500" id="prev-inv-date">Date: Oct 15, 2026</p>
+        </div>
+      </div>
+      <div class="py-6 grid grid-cols-2 gap-4 text-xs">
+        <div>
+          <p class="font-bold text-gray-700">Billed To:</p>
+          <p class="font-semibold text-gray-900" id="prev-inv-client">Apex Cyber Systems</p>
+          <p class="text-gray-500">GSTIN: 27AAAAA0000A1Z5</p>
+        </div>
+        <div class="text-right">
+          <p class="font-bold text-gray-700">Payable To:</p>
+          <p class="text-gray-900">KPI Tech Corporation</p>
+          <p class="text-gray-500">HDFC Bank A/C: 50200088921200</p>
+        </div>
+      </div>
+      <table class="w-full text-xs text-left mb-6">
+        <thead class="bg-gray-100 text-gray-700 font-bold">
+          <tr>
+            <th class="p-2">Description</th>
+            <th class="p-2 text-right">Total</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y" id="prev-inv-items">
+          <!-- Dynamically populated -->
+        </tbody>
+      </table>
+      <div class="text-right border-t pt-4 text-xs space-y-1">
+        <p class="text-gray-600">Grand Total: <span class="text-base font-bold text-gray-900" id="prev-inv-total">$53,100.00</span></p>
+      </div>
+      <div class="mt-8 flex justify-end space-x-2 print:hidden">
+        <button onclick="closeModal('modal-invoice-preview')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold">Close</button>
+        <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold">Print / Download PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APP LOGIC -->
+  <script>
+    // App State
+    let currentUser = null;
+
+    const customers = [
+      { id: 1, name: 'Apex Cyber Systems', gstin: '07AAACA1234B1Z2', contact: 'R. Sharma', email: 'r.sharma@apexcyber.com', services: 'Azure Infrastructure & RBAC', status: 'Active' },
+      { id: 2, name: 'Horizon Cloud Labs', gstin: '27AABCH9876C1Z9', contact: 'M. Patel', email: 'm.patel@horizon.io', services: 'GitHub Actions Migration', status: 'Active' },
+      { id: 3, name: 'Nexus Financial', gstin: '09AAACN5544D1Z8', contact: 'V. Gupta', email: 'v.gupta@nexusfin.com', services: 'Managed Security Services', status: 'Active' },
+      { id: 4, name: 'Kpi Enterprise Internal', gstin: '07AAACK1122E1Z1', contact: 'Internal Ops', email: 'ops@kpitech.com', services: 'Infrastructure Hardware Procurement', status: 'Active' }
+    ];
+
+    const invoices = [
+      { id: 'INV-2026-001', client: 'Apex Cyber Systems', issueDate: '2026-10-01', dueDate: '2026-10-31', total: '$45,000.00', status: 'Paid' },
+      { id: 'INV-2026-002', client: 'Horizon Cloud Labs', issueDate: '2026-10-05', dueDate: '2026-11-05', total: '$18,500.00', status: 'Pending' },
+      { id: 'INV-2026-003', client: 'Nexus Financial', issueDate: '2026-09-15', dueDate: '2026-10-15', total: '$142,850.00', status: 'Overdue' }
+    ];
+
+    const projects = [
+      { id: 'PRJ-01', name: 'Azure Governance Review', client: 'Apex Cyber', progress: 85, budget: '$60,000' },
+      { id: 'PRJ-02', name: 'Jenkins to GitHub Actions Migration', client: 'Horizon Cloud', progress: 40, budget: '$35,000' }
+    ];
+
+    const orders = [
+      { id: 'ORD-901', client: 'Nexus Financial', item: 'Dell PowerEdge R750 Servers', total: '$85,000', status: 'Fulfilled' },
+      { id: 'ORD-902', client: 'Horizon Cloud Labs', item: 'Cloud Capacity Pass-through', total: '$12,400', status: 'Processing' }
+    ];
+
+    const users = [
+      { name: 'S Jenkins', role: 'Finance Director', email: 's.jenkins@kpitech.com', status: 'Active' },
+      { name: 'A. Sharma', role: 'DevOps Lead', email: 'a.sharma@kpitech.com', status: 'Active' },
+      { name: 'M. Verma', role: 'System Administrator', email: 'm.verma@kpitech.com', status: 'Active' }
+    ];
+
+    // INITIALIZATION
+    window.onload = () => {
+      calculateInvoiceTotal();
+      renderTables();
+    };
+
+    // AUTHENTICATION LOGIC
+    function handleLogin(e) {
+      e.preventDefault();
+      const role = document.getElementById('login-role').value;
+      currentUser = { name: role.split(' ')[0] + ' ' + (role.split(' ')[1] || ''), role: role };
+      
+      document.getElementById('user-display-name').innerText = role;
+      document.getElementById('user-display-role').innerText = role.includes('Finance') ? 'Finance Director' : 'Administrator';
+      document.getElementById('auth-screen').classList.add('hidden');
+      document.getElementById('app-portal').classList.remove('hidden');
+
+      initCharts();
+    }
+
+    function handleLogout() {
+      document.getElementById('app-portal').classList.add('hidden');
+      document.getElementById('auth-screen').classList.remove('hidden');
+    }
+
+    function showForgotPassword() {
+      document.getElementById('login-form-container').classList.add('hidden');
+      document.getElementById('forgot-form-container').classList.remove('hidden');
+    }
+
+    function showLoginForm() {
+      document.getElementById('forgot-form-container').classList.add('hidden');
+      document.getElementById('login-form-container').classList.remove('hidden');
+    }
+
+    function handleForgotPassword(e) {
+      e.preventDefault();
+      alert('Password reset link sent to email!');
+      showLoginForm();
+    }
+
+    // NAVIGATION
+    function switchTab(tabKey) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(el => {
+        el.classList.remove('bg-brand-blue/10', 'text-brand-blue', 'border', 'border-brand-blue/20');
+        el.classList.add('text-gray-400');
+      });
+
+      document.getElementById(`tab-${tabKey}`).classList.remove('hidden');
+      const activeNav = document.getElementById(`nav-${tabKey}`);
+      if(activeNav) {
+        activeNav.classList.add('bg-brand-blue/10', 'text-brand-blue', 'border', 'border-brand-blue/20');
+        activeNav.classList.remove('text-gray-400');
+      }
+    }
+
+    // MODAL HANDLERS
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    // RENDER FUNCTIONS
+    function renderTables() {
+      // Customers
+      document.getElementById('customer-table-body').innerHTML = customers.map(c => `
+        <tr class="hover:bg-gray-800/30 transition">
+          <td class="p-4 font-bold text-white">${c.name}</td>
+          <td class="p-4 font-mono text-gray-400">${c.gstin}</td>
+          <td class="p-4">${c.contact} (${c.email})</td>
+          <td class="p-4 text-brand-blue">${c.services}</td>
+          <td class="p-4"><span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-semibold">${c.status}</span></td>
+          <td class="p-4 text-right"><button onclick="alert('Viewing account details')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-ellipsis-vertical"></i></button></td>
+        </tr>
+      `).join('');
+
+      // Invoices
+      document.getElementById('invoices-table-body').innerHTML = invoices.map(i => `
+        <tr class="hover:bg-gray-800/30 transition">
+          <td class="p-4 font-mono font-bold text-brand-blue">${i.id}</td>
+          <td class="p-4 text-white font-medium">${i.client}</td>
+          <td class="p-4 text-gray-400">${i.issueDate}</td>
+          <td class="p-4 text-gray-400">${i.dueDate}</td>
+          <td class="p-4 font-bold text-white">${i.total}</td>
+          <td class="p-4">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
+              i.status === 'Paid' ? 'bg-emerald-500/10 text-emerald-400' : 
+              i.status === 'Pending' ? 'bg-amber-500/10 text-amber-400' : 'bg-rose-500/10 text-rose-400'
+            }">${i.status}</span>
+          </td>
+          <td class="p-4 text-right">
+            <button onclick="previewInvoice('${i.id}', '${i.client}', '${i.total}')" class="text-xs text-brand-blue hover:underline">View Invoice</button>
+          </td>
+        </tr>
+      `).join('');
+
+      // Projects
+      document.getElementById('projects-list-container').innerHTML = projects.map(p => `
+        <div class="bg-[#111827] border border-gray-800 rounded-2xl p-5 space-y-3">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-sm font-bold text-white">${p.name}</h3>
+              <p class="text-xs text-gray-400">${p.client}</p>
+            </div>
+            <span class="text-xs font-mono text-brand-blue">${p.budget}</span>
+          </div>
+          <div>
+            <div class="flex justify-between text-[10px] text-gray-400 mb-1">
+              <span>Progress</span>
+              <span>${p.progress}%</span>
+            </div>
+            <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-brand-blue to-brand-purple" style="width: ${p.progress}%"></div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Orders
+      document.getElementById('orders-table-body').innerHTML = orders.map(o => `
+        <tr class="hover:bg-gray-800/30 transition">
+          <td class="p-4 font-mono text-brand-blue">${o.id}</td>
+          <td class="p-4 text-white">${o.client}</td>
+          <td class="p-4">${o.item}</td>
+          <td class="p-4 font-bold text-white">${o.total}</td>
+          <td class="p-4"><span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px]">${o.status}</span></td>
+          <td class="p-4 text-right">
+            <button onclick="switchTab('generate-invoice')" class="text-xs text-brand-blue hover:underline">Convert to Invoice</button>
+          </td>
+        </tr>
+      `).join('');
+
+      // Users
+      document.getElementById('users-table-body').innerHTML = users.map(u => `
+        <tr class="hover:bg-gray-800/30 transition">
+          <td class="p-4 font-bold text-white">${u.name}</td>
+          <td class="p-4 text-brand-blue">${u.role}</td>
+          <td class="p-4 text-gray-400">${u.email}</td>
+          <td class="p-4"><span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px]">${u.status}</span></td>
+          <td class="p-4 text-right space-x-2">
+            <button onclick="alert('Password reset trigger sent')" class="text-xs text-amber-400 hover:underline">Reset Password</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // INVOICE BUILDER LOGIC
+    function addInvoiceRow() {
+      const container = document.getElementById('invoice-items-container');
+      const div = document.createElement('div');
+      div.className = 'grid grid-cols-12 gap-2 item-row';
+      div.innerHTML = `
+        <input type="text" placeholder="Service description" value="Cloud Support Retainer" class="col-span-6 bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+        <input type="number" placeholder="Qty" value="1" oninput="calculateInvoiceTotal()" class="col-span-2 item-qty bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+        <input type="number" placeholder="Rate" value="12000" oninput="calculateInvoiceTotal()" class="col-span-3 item-rate bg-[#0B0F19] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white">
+        <button onclick="this.closest('.item-row').remove(); calculateInvoiceTotal();" class="col-span-1 text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button>
+      `;
+      container.appendChild(div);
+      calculateInvoiceTotal();
+    }
+
+    function calculateInvoiceTotal() {
+      const curr = document.getElementById('invoice-currency').value;
+      let subtotal = 0;
+      document.querySelectorAll('.item-row').forEach(row => {
+        const q = parseFloat(row.querySelector('.item-qty').value) || 0;
+        const r = parseFloat(row.querySelector('.item-rate').value) || 0;
+        subtotal += q * r;
+      });
+      const tax = subtotal * 0.18;
+      const grand = subtotal + tax;
+
+      document.getElementById('inv-subtotal').innerText = `${curr}${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      document.getElementById('inv-tax').innerText = `${curr}${tax.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      document.getElementById('inv-grandtotal').innerText = `${curr}${grand.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    }
+
+    function previewAndSaveInvoice() {
+      const client = document.getElementById('invoice-client-select').value;
+      const total = document.getElementById('inv-grandtotal').innerText;
+      previewInvoice('INV-2026-089', client, total);
+    }
+
+    function previewInvoice(id, client, total) {
+      document.getElementById('prev-inv-num').innerText = id;
+      document.getElementById('prev-inv-client').innerText = client;
+      document.getElementById('prev-inv-total').innerText = total;
+      
+      const itemsBody = document.getElementById('prev-inv-items');
+      itemsBody.innerHTML = `
+        <tr>
+          <td class="p-2">Cloud Infrastructure & DevOps Support Services</td>
+          <td class="p-2 text-right">${total}</td>
+        </tr>
+      `;
+
+      openModal('modal-invoice-preview');
+    }
+
+    function saveNewClient() {
+      const name = document.getElementById('new-client-name').value;
+      const gstin = document.getElementById('new-client-gstin').value;
+      const email = document.getElementById('new-client-email').value;
+      if(name) {
+        customers.push({ id: customers.length + 1, name, gstin: gstin || '27XXXXX0000X1Z1', contact: 'Admin', email: email || 'contact@client.com', services: 'Consulting Services', status: 'Active' });
+        renderTables();
+        closeModal('modal-add-client');
+      }
+    }
+
+    function saveNewUser() {
+      const name = document.getElementById('new-user-name').value;
+      const email = document.getElementById('new-user-email').value;
+      const role = document.getElementById('new-user-role').value;
+      if(name) {
+        users.push({ name, role, email, status: 'Active' });
+        renderTables();
+        closeModal('modal-add-user');
+      }
+    }
+
+    // CHART.JS INITIALIZATION
+    function initCharts() {
+      // Line Chart - Revenue Trend
+      const ctxLine = document.getElementById('revenueTrendChart').getContext('2d');
+      new Chart(ctxLine, {
+        type: 'line',
+        data: {
+          labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+          datasets: [{
+            label: 'Revenue ($)',
+            data: [180000, 220000, 195000, 240000, 210000, 285000],
+            borderColor: '#06B6D4',
+            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 3,
+            pointBackgroundColor: '#06B6D4'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9CA3AF' } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9CA3AF' } }
+          }
+        }
+      });
+
+      // Donut Chart - Payment Status
+      const ctxDonut = document.getElementById('paymentStatusChart').getContext('2d');
+      new Chart(ctxDonut, {
+        type: 'doughnut',
+        data: {
+          labels: ['Paid', 'Pending', 'Overdue'],
+          datasets: [{
+            data: [76, 18, 6],
+            backgroundColor: ['#10B981', '#F59E0B', '#F43F5E'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          cutout: '75%'
+        }
+      });
+
+      // Bar Chart - Analytics
+      const ctxBar = document.getElementById('analyticsBarChart').getContext('2d');
+      new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+          labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+          datasets: [
+            { label: 'MRR Retainers', data: [120000, 145000, 160000, 215400], backgroundColor: '#3B82F6' },
+            { label: 'Hardware & One-Time', data: [45000, 80000, 30000, 95000], backgroundColor: '#8B5CF6' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#9CA3AF' } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9CA3AF' } }
+          }
+        }
+      });
+
+      // Client Chart - Analytics
+      const ctxClient = document.getElementById('analyticsClientChart').getContext('2d');
+      new Chart(ctxClient, {
+        type: 'pie',
+        data: {
+          labels: ['Apex Cyber', 'Horizon Labs', 'Nexus Fin', 'Others'],
+          datasets: [{
+            data: [40, 25, 20, 15],
+            backgroundColor: ['#3B82F6', '#8B5CF6', '#06B6D4', '#64748B']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'right', labels: { color: '#9CA3AF' } } }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
